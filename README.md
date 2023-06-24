@@ -34,8 +34,7 @@ These instructions assume you have started Codespace dev container.
    Or, load the full set of the embeddings (which takes more than an hour):
    `load-weaviate --full`
 
-   Loading the full dataset may require increasing the disk storage on the instance, and you
-   may also want to increase the memory and CPUs.
+   Loading the full dataset seems to requires having an 8G instance.
 
 3. Run some queries.
    

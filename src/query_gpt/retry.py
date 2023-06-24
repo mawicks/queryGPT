@@ -10,7 +10,7 @@ def backoff_and_retry(wrapped):
             result = wrapped()
             break
         except Exception as e:
-            logger.warning("Weaviate batch failed...")
+            logger.warning(f"{wrapped.__name__} failed...")
             print(e)
 
             wait = 5 * 2**retry_count
