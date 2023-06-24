@@ -1,0 +1,4 @@
+dirname=$(dirname $0)
+
+docker compose -f "${dirname}/../docker/weaviate-docker-compose.yml" down
+

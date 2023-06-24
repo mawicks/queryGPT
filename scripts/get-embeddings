@@ -1,0 +1,7 @@
+if [ -z "$1" ]
+then
+   echo "Usage: $0 <bucket>/<path>"
+   exit 1
+fi
+
+sudo aws s3 sync s3://$1 /data/embeddings --no-sign-request

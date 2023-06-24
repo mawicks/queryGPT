@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  weaviate:
+    restart: on-failure:0
+    ports:
+      - 8080:8080
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 500
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      CLUSTER_HOSTNAME: 'node1'
+    image: semitechnologies/weaviate:1.19.6
+
+
+volumes:
+  weaviate-data:
