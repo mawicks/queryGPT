@@ -36,7 +36,7 @@ IRS_FILE_SEGMENTS = {
     ],
 }
 IRS_FILE_TEMPLATE = (
-    "https://apps.irs.gov/pub/epostcard/990/xml/2022/2022_TEOS_XML_{segment}.zip"
+    "https://apps.irs.gov/pub/epostcard/990/xml/{year}/{year}_TEOS_XML_{segment}.zip"
 )
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
 FILENAME_GLOB = "2023*_public.xml"
@@ -45,9 +45,9 @@ NS = {"irs": "http://www.irs.gov/efile"}
 RETURN_TYPES_TO_SKIP = ("990PF", "990T")
 
 
-def download_and_parse_segment(segment):
+def download_and_parse_segment(year, segment):
     docs = []
-    url = IRS_FILE_TEMPLATE.format(segment=segment)
+    url = IRS_FILE_TEMPLATE.format(year=year, segment=segment)
     request_result = requests.get(url)
 
     with tempfile.NamedTemporaryFile("wb") as zip_file:
@@ -151,11 +151,11 @@ def doc_to_string(doc):
 
 
 if __name__ == "__main__":
-    for year in (2022,):
+    for year in (2022, 2023):
         logger.info(f"Processing year: {year}")
         for segment in tqdm(IRS_FILE_SEGMENTS[year]):
             logger.info(f"Downloading segment: {segment} ({year})")
-            docs = download_and_parse_segment(segment)
+            docs = download_and_parse_segment(year, segment)
             logger.info(f"Parsed {len(docs):,d} documents in segment {segment}")
 
             compute_search_embeddings(
