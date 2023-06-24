@@ -28,11 +28,16 @@ These instructions assume you have started Codespace dev container.
    * To create your own, type:
      `<TBD>`
 
-2. Load a subset of the embeddings into Weaviate
-   `python -m queryGPT.load_weaviate`
+2. Load a small subset of the embeddings into Weaviate for testing (which takes less than a minute):
+   `load-weaviate`
 
-   Or, load the full set of the embeddings with
-   `python -m queryGOT.load_weaviate --full`
+   Or, load the full set of the embeddings (which takes more than an hour):
+   `load-weaviate --full`
+
+   Loading the full dataset may require increasing the disk storage on the instance, and you
+   may also want to increase the memory and CPUs.
+
+3. Run some queries.
    
    
    

@@ -1,0 +1,3 @@
+dirname=$(dirname $0)
+
+poetry run python -m query_gpt.load_weaviate $*
