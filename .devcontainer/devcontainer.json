@@ -35,6 +35,9 @@
 	// "remoteUser": "root"
 	"remoteEnv": {
 		"PATH": "${containerEnv:PATH}:/workspaces/queryGPT/scripts"
-	}
+	},
+
+	"postCreateCommand": "poetry install",
+	"postStartCommand": "start-weaviate"
 }
 

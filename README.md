@@ -8,8 +8,9 @@ It is intended to be run in a Codespace.
 
 # Prerequisites
 
-1. You need an OpenAI key.
-2. (Optional) An S3 bucket location containing pre-trained embeddings for the
+1. A GitHub account (required to use Codespaces, which are free below a certain utilization)
+2. An OpenAI key.
+3. (Optional) An S3 bucket location containing pre-trained embeddings for the
    IRS 990 data.  This step is optional if you want to train your own
    embeddings using OpenAI.  Computing the embeddings for the returns
    for a year or two will take a couple hours and may cost up to $20 (in June, 2023).
@@ -18,6 +19,21 @@ It is intended to be run in a Codespace.
 
 # Instructions
 
-These instructions apply in a Codespace dev container.
+These instructions assume you have started Codespace dev container.
 
-1. TBD...
+1. Create or download a set of embeddings.
+   * To down them from a public S3 bucket, type:
+     `get-embeddings <bucket-name>/<path>`
+
+   * To create your own, type:
+     `<TBD>`
+
+2. Load a subset of the embeddings into Weaviate
+   `python -m queryGPT.load_weaviate`
+
+   Or, load the full set of the embeddings with
+   `python -m queryGOT.load_weaviate --full`
+   
+   
+   
+

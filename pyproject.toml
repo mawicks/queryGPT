@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "queryGPT"
+name = "query_gpt"
 version = "0.1.0"
 description = "Reference for how to query a database using natural language (OpenAI)"
 authors = ["Mark Wicks <mawicks@gmail.com>"]
