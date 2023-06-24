@@ -1,5 +1,4 @@
 from glob import glob
-import io
 import logging
 import os
 import requests
@@ -7,8 +6,9 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 from tqdm import tqdm
+from query_gpt.config import DATA_DIR
 
-from queryGPT.embeddings import compute_search_embeddings
+from query_gpt.embeddings import compute_search_embeddings
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,7 +38,6 @@ IRS_FILE_SEGMENTS = {
 IRS_FILE_TEMPLATE = (
     "https://apps.irs.gov/pub/epostcard/990/xml/{year}/{year}_TEOS_XML_{segment}.zip"
 )
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
 FILENAME_GLOB = "2023*_public.xml"
 
 NS = {"irs": "http://www.irs.gov/efile"}
@@ -146,8 +145,25 @@ def parse(filename):
     return doc
 
 
+ORDERED_FIELDS = [
+    "EIN",
+    "Tax Year",
+    "Tax Period",
+    "Name",
+    "Address",
+    "Purpose",
+    "Activities",
+    "Website",
+    "Accomplishments",
+    "Revenue",
+    "Expenses",
+]
+
+
+# Even though the dictionary is ordered, we persist these documents as JSON in the vector
+# database which destroys order.  If we care about the order, we need to specify it explicitly.
 def doc_to_string(doc):
-    return "".join([f"{key}: {value}\n" for key, value in doc.items()])
+    return "".join([f"{key}: {doc[value]}\n" for key in ORDERED_FIELDS if key in doc])
 
 
 if __name__ == "__main__":
