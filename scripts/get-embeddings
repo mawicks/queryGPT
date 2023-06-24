@@ -1,7 +1,11 @@
 if [ -z "$1" ]
 then
+   echo "No bucket name or path"
    echo "Usage: $0 <bucket>/<path>"
+   echo
    exit 1
 fi
 
-sudo aws s3 sync s3://$1 /data/embeddings --no-sign-request
+dirname=$(dirname $0)
+
+sudo aws s3 sync s3://$1 "${dirname}/../data/embeddings" --no-sign-request

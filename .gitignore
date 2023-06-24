@@ -1,3 +1,4 @@
 data/
+*.parquet
 .env
 __pycache__/
