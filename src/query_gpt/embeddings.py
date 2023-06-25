@@ -8,6 +8,8 @@ import openai
 import pandas as pd
 from tqdm import tqdm
 
+from query_gpt.retry import backoff_and_retry
+
 logger = logging.getLogger(__name__)
 
 EMBEDDING_MODEL = "text-embedding-ada-002"
@@ -20,7 +22,6 @@ VECTOR_SEARCH_FILE_TEMPLATE = (
 # read back into memory.
 
 CHUNK_SIZE = 5_000
-RETRY_LIMIT = 5
 
 # How many documents to pass to OpenAPI at one time.
 OPENAI_BATCH_SIZE = 100
@@ -55,23 +56,15 @@ def embed_chunk(chunk_of_docs, doc_to_string) -> dict[str, object]:
 
         # OpenAI calls can fail.  Wrap in a retry loop  Try the batch up to
         # RETRY_LIMIT times
-        result = None
-        for retry_count in range(RETRY_LIMIT):
-            try:
-                result = openai.Embedding.create(
-                    input=batch,
-                    model=EMBEDDING_MODEL,
-                )
-            except Exception as e:
-                logger.warning("OpenAI call failed on following strings:")
-                logger.warning(f"docs: {batch}")
-                print(e)
-            if result is not None:
-                break
-            logger.warning("retrying...")
-            time.sleep(5 * (2**retry_count))
-        else:
-            raise RuntimeError("Too many retries.")
+
+        def try_once():
+            result = openai.Embedding.create(
+                input=batch,
+                model=EMBEDDING_MODEL,
+            )
+            return result
+
+        result = backoff_and_retry(try_once)
 
         embeddings.extend([e["embedding"] for e in result["data"]])  # type:ignore
         usage += result["usage"]["total_tokens"]  # type:ignore

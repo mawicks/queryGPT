@@ -1,0 +1,5 @@
+dirname=$(dirname $0)
+DB=qdrant
+
+docker compose -f "${dirname}/../docker/${DB}-docker-compose.yml" up -d
+
