@@ -57,7 +57,7 @@ You would type the commands described below in the Terminal of the Codespace.
 
    The small sample is useful for development and debugging.  However, unless
    you load the full database, you won't get very meaningful query responses.
-   To load the full set of the embeddings (which takes more than an hour), type:
+   To load the full set of the embeddings (which takes several hours), type:
 
    ```
    load-vector-db --full
