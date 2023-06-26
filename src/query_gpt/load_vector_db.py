@@ -37,7 +37,9 @@ def load_vector_db_command(full):
         file_limit = min(FILE_LIMIT_QUICK, len(filenames))
         filenames = random_state.sample(filenames, file_limit)
 
-    logger.info(f"Loading embedding data ({len(filenames):,d} files) to Weaviate")
+    logger.info(
+        f"Loading embedding data ({len(filenames):,d} files) to vector database"
+    )
 
     for filename in tqdm(filenames):
         search_data = pd.read_parquet(filename)
