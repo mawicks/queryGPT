@@ -177,7 +177,7 @@ if __name__ == "__main__":
             compute_search_embeddings(
                 docs,
                 doc_to_string,
-                data_dir=DATA_DIR,
+                data_dir=os.path.join(DATA_DIR, "embeddings"),
                 year=year,
                 segment=segment,
             )

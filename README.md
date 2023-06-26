@@ -1,15 +1,20 @@
 # Introduction
 
-This repo was created to serve as an example of how to use OpenAI language
-model to data that it was trained when the data is too big to fit in the 
-prompt.  It uses a subset of public IRS 990 tax returns as an example.
+This repo was created for developers to use as an example of how
+to use an OpenAI language model on data that it was not trained on
+and that is too big to embed in the prompt.  It is not intended
+to be usable other than as an example.  It uses a subset of public
+IRS 990 tax returns as an example of a dataset that can be queried
+using OpenaI.
 
-It is intended to be run in a Codespace.
+These instructions assume that you are running this code in a GitHub
+Codespace or devcontainer.
 
 # Prerequisites
 
-1. A GitHub account (required to use Codespaces, which are free below a certain utilization)
-2. An OpenAI key.
+1. A GitHub account, which is required to use Codespaces, which are free as long as
+   you stay below a certain level of utilization.
+2. An OpenAI API key.
 3. (Optional) An S3 bucket location containing pre-trained embeddings for the
    IRS 990 data.  This step is optional if you want to train your own
    embeddings using OpenAI.  Computing the embeddings for the returns
@@ -19,24 +24,52 @@ It is intended to be run in a Codespace.
 
 # Instructions
 
-These instructions assume you have started Codespace dev container.
+These instructions assume you have created a Codespace dev container.  You can
+create a Codespace container from the main page of this repository by clicking
+on `Code`, then `Codespaces`, then `+`.
 
-1. Create or download a set of embeddings.
-   * To down them from a public S3 bucket, type:
-     `get-embeddings <bucket-name>/<path>`
+1. Download or create a set of embeddings.
+   * To download a set of embeddings from a public S3 bucket, type:
 
-   * To create your own, type:
-     `<TBD>`
+     ```
+     get-embeddings <your-s3-bucket-name> <your-bucket-path>
+     ```
 
-2. Load a small subset of the embeddings into Weaviate for testing (which takes less than a minute):
-   `load-weaviate`
+   * To create your own embeddings, type the command below,
+     which will download files for 2022 and 2023 from the IRS,
+     parse the files, and call OpenAI to get the embeddings.
+     It takes several hours to complete and will incur charges to
+     your OpenAI account, and it may not work.  Use at your own risk.
+     To do this, type:
 
-   Or, load the full set of the embeddings (which takes more than an hour):
-   `load-weaviate --full`
+     ```
+     export OPENAI_API_KEY=<YOUR OPEN AI API KEY>
+     python -m query_gpt.data
+     ```
 
-   Loading the full dataset seems to requires having an 8G instance.
+2. Load a small sample of the embeddings into Qdrant for testing (this takes less than a minute):
 
-3. Run some queries.
+   ```
+   load-vector-db
+   ```
+
+   The small sample is useful for development and debugging.  However, unless
+   you load the full database, you won't get very meaningful query responses.
+   To load the full set of the embeddings (which takes more than an hour), type:
+
+   ```
+   load-vector-db --full
+   ```
+
+   For the full dataset, I recommend using an 8G instance.
+
+3. Run some queries (note that if you don't load the full set of embeddings, you won't get
+   very meaningful answers):
+
+   ```
+   export OPENAI_API_KEY=<YOUR OPEN AI API KEY>
+   query
+   ```
    
    
    
