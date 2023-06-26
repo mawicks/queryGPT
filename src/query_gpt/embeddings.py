@@ -1,18 +1,18 @@
 import gc
 import logging
 import os
-import time
 from typing import Callable
 
 import openai
 import pandas as pd
+import tiktoken
 from tqdm import tqdm
+from query_gpt.config import EMBEDDING_MODEL, EMBEDDING_TOKEN_GOAL
 
 from query_gpt.retry import backoff_and_retry
 
 logger = logging.getLogger(__name__)
 
-EMBEDDING_MODEL = "text-embedding-ada-002"
 VECTOR_SEARCH_FILE_TEMPLATE = (
     "irs_form_990_embeddings_{year}_{segment}_{chunk_id}.parquet"
 )
@@ -25,6 +25,12 @@ CHUNK_SIZE = 5_000
 
 # How many documents to pass to OpenAPI at one time.
 OPENAI_BATCH_SIZE = 100
+
+EMBEDDING_ENCODER = tiktoken.encoding_for_model(EMBEDDING_MODEL)
+
+
+def truncate_at_token_limit(s: str):
+    return EMBEDDING_ENCODER.decode(EMBEDDING_ENCODER.encode(s)[:EMBEDDING_TOKEN_GOAL])
 
 
 def embed_chunk(chunk_of_docs, doc_to_string) -> dict[str, object]:
@@ -49,8 +55,11 @@ def embed_chunk(chunk_of_docs, doc_to_string) -> dict[str, object]:
         # Convert list of documents to embeddable text
         batch = list(
             map(
-                doc_to_string,
-                chunk_of_docs[batch_index : batch_index + OPENAI_BATCH_SIZE],
+                truncate_at_token_limit,
+                map(
+                    doc_to_string,
+                    chunk_of_docs[batch_index : batch_index + OPENAI_BATCH_SIZE],
+                ),
             )
         )
 

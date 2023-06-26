@@ -11,16 +11,14 @@ import xml.etree.ElementTree as ET
 
 
 from tqdm import tqdm
-from query_gpt.config import MODEL, INPUT_TOKEN_GOAL
-from query_gpt.config import DATA_DIR
-
+from query_gpt.config import DATA_DIR, MODEL, INPUT_TOKEN_GOAL
 from query_gpt.embeddings import compute_search_embeddings
 
 
 logger = logging.getLogger(__name__)
 counters = Counter()
 
-WANT_EMBEDDINGS = False
+COMPUTE_EMBEDDINGS = True
 
 # Encoder to use to pre-check the token count when building the prompt
 ENCODER = tiktoken.encoding_for_model(MODEL)
@@ -38,11 +36,11 @@ IRS_FILE_SEGMENTS = {
         "11C",
     ],
     2023: [
-        "01A",
-        "02A",
-        "03A",
-        "04A",
-        "05A",
+        # "01A",
+        # "02A",
+        # "03A",
+        # "04A",
+        # "05A",
         "05B",
     ],
 }
@@ -54,6 +52,7 @@ FILENAME_GLOB = "2023*_public.xml"
 NS = {"irs": "http://www.irs.gov/efile"}
 RETURN_TYPES_TO_SKIP = ("990PF", "990T", "990N")
 
+
 def download_and_parse_segment(year, segment):
     docs = []
     url = IRS_FILE_TEMPLATE.format(year=year, segment=segment)
@@ -63,7 +62,7 @@ def download_and_parse_segment(year, segment):
         zip_file.write(request_result.content)
 
         with tempfile.TemporaryDirectory() as extract_dir:
-            # Python zipfile cannot handle several IRS files so use command line (:)
+            # Python zipfile cannot handle several IRS files so use command line :(
             os.system(f"unzip -d {extract_dir} {zip_file.name} > /dev/null ")
             for filename in glob(os.path.join(extract_dir, "*.xml")):
                 doc = parse(filename)
@@ -82,11 +81,13 @@ def combine(items):
             combined += field
     return combined
 
+
 def add_namespaces_to_path(path: str):
-    return ".//" + '/'.join(map(lambda s: 'irs:'+s, path.split('/')))
+    return ".//" + "/".join(map(lambda s: "irs:" + s, path.split("/")))
+
 
 # TODO fix type hints to use a type variable for field_type.
-def get_field(root: ET.Element, path:str, field_type: type  = str) -> object | None:
+def get_field(root: ET.Element, path: str, field_type: type = str) -> object | None:
     element = root.find(add_namespaces_to_path(path), NS)
     if element is None:
         return None
@@ -96,24 +97,26 @@ def get_field(root: ET.Element, path:str, field_type: type  = str) -> object | N
         field_value = element.text
     return field_value
 
-def get_all_fields(root: ET.Element, path:str):
+
+def get_all_fields(root: ET.Element, path: str):
     elements = root.findall(add_namespaces_to_path(path), NS)
     if elements is None:
         return None
     return [element.text for element in elements]
 
+
 def parse(filename):
     root = ET.parse(filename).getroot()
 
     # Skip certain types of returns
-    return_type = get_field(root, 'ReturnTypeCd')
+    return_type = get_field(root, "ReturnTypeCd")
     if return_type is not None and return_type in RETURN_TYPES_TO_SKIP:
         return
 
     counters[return_type] += 1
 
     # Skip non US addresses
-    foreign_address = get_field(root, 'ForeignAddress')
+    foreign_address = get_field(root, "ForeignAddress")
     if foreign_address is not None:
         return
 
@@ -122,15 +125,14 @@ def parse(filename):
 
     doc["EIN"] = get_field(root, "Filer/EIN")
 
-    doc["Tax Year"] = get_field(root, 'TaxYr')
-
+    doc["Tax Year"] = get_field(root, "TaxYr")
 
     tax_period_start = get_field(root, "TaxPeriodBeginDt")
     tax_period_end = get_field(root, "TaxPeriodEndDt")
     doc["Tax Period"] = f"{tax_period_start} to {tax_period_end}"
 
-    name1 = get_field(root, 'BusinessName/BusinessNameLine1Txt')
-    name2 = get_field(root, 'BusinessName/BusinessNameLine2Txt')
+    name1 = get_field(root, "BusinessName/BusinessNameLine1Txt")
+    name2 = get_field(root, "BusinessName/BusinessNameLine2Txt")
     doc["Name"] = f"{name1}{' ' + str(name2) if name2 is not None else '' }"
 
     address = get_field(root, "USAddress/AddressLine1Txt")
@@ -174,17 +176,16 @@ def parse(filename):
 
     total_revenue = get_field(root, "TotalRevenueAmt", float)
     if total_revenue is None:
-        total_revenue = get_field(root,"CYTotalRevenueAmt", float)
+        total_revenue = get_field(root, "CYTotalRevenueAmt", float)
     doc["Total Revenue"] = total_revenue
 
     total_expenses = get_field(root, "TotalExpensesAmt", float)
     if total_expenses is None:
-        total_expenses = get_field(root, "CYTotalExpensesAmt",float)
+        total_expenses = get_field(root, "CYTotalExpensesAmt", float)
     doc["Total Expenses"] = total_expenses
 
-    doc["Employee Count"] = get_field(root, "TotalEmployeeCnt",int)
+    doc["Employee Count"] = get_field(root, "TotalEmployeeCnt", int)
     doc["Volunteer Count"] = get_field(root, "TotalVolunteersCnt", int)
-
 
     return doc
 
@@ -215,7 +216,6 @@ def doc_to_string(doc):
     return "".join(
         [f"{key}: {doc[key]}\n" for key in ORDERED_FIELDS if doc.get(key) is not None]
     )
-
 
 
 def make_prompt(question: str, items: list[dict[str, str]], failures: int) -> str:
@@ -274,15 +274,18 @@ def make_prompt(question: str, items: list[dict[str, str]], failures: int) -> st
     return prompt
 
 
+# YEAR_LIST = (2022, 2023)
+YEAR_LIST = (2023,)
+
 if __name__ == "__main__":
-    for year in (2022, 2023):
+    for year in YEAR_LIST:
         logger.info(f"Processing year: {year}")
         for segment in tqdm(IRS_FILE_SEGMENTS[year]):
             logger.info(f"Downloading segment: {segment} ({year})")
             docs = download_and_parse_segment(year, segment)
             logger.info(f"Parsed {len(docs):,d} documents in segment {segment}")
 
-            if WANT_EMBEDDINGS:
+            if COMPUTE_EMBEDDINGS:
                 compute_search_embeddings(
                     docs,
                     doc_to_string,
@@ -292,4 +295,3 @@ if __name__ == "__main__":
                 )
             logger.info(f"{counters}")
             logger.info("done")
-
