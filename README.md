@@ -34,7 +34,7 @@ You would type the commands described below in the Terminal of the Codespace.
    * To download a set of embeddings from a public S3 bucket, type:
 
      ```
-     get-embeddings <your-s3-bucket-name> <your-bucket-path>
+     get-embeddings <YOUR S3 BUCKET NAME> <YOUR BUCKET PATH>
      ```
 
    * If you don't have access to pre-computed embeddings, type the command below,
