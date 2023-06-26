@@ -26,7 +26,9 @@ Codespace or devcontainer.
 
 These instructions assume you have created a Codespace dev container.  You can
 create a Codespace container from the main page of this repository by clicking
-on `Code`, then `Codespaces`, then `+`.
+on `Code`, then `Codespaces`, then `Create codespace on main`
+(creating a codespace can take about 10 minutes).
+You would type the commands described below in the Terminal of the Codespace.
 
 1. Download or create a set of embeddings.
    * To download a set of embeddings from a public S3 bucket, type:
@@ -35,7 +37,7 @@ on `Code`, then `Codespaces`, then `+`.
      get-embeddings <your-s3-bucket-name> <your-bucket-path>
      ```
 
-   * To create your own embeddings, type the command below,
+   * If you don't have access to pre-computed embeddings, type the command below,
      which will download files for 2022 and 2023 from the IRS,
      parse the files, and call OpenAI to get the embeddings.
      It takes several hours to complete and will incur charges to
