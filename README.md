@@ -63,7 +63,8 @@ You would type the commands described below in the Terminal of the Codespace.
    load-vector-db --full
    ```
 
-   For the full dataset, I recommend using an 8G, 4-core instance.
+   For the full dataset, I recommend using an 8G, 4-core instance.  You can
+   modify the instance after it's created on the same menu where you created it.
 
 3. Run some queries (Note that if you don't load the full set of embeddings, you won't get
    as meaningful answers):
