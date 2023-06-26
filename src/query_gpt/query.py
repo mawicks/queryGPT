@@ -59,5 +59,7 @@ if __name__ == "__main__":
 
     while True:
         question = input("Question: ")
+        if len(question) == 0:
+            break
         answer = answer_bot.get_answer(question)
         print("\n")
