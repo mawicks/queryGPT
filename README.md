@@ -65,6 +65,7 @@ You would type the commands described below in the Terminal of the Codespace.
 
    For the full dataset, I recommend using an 8G, 4-core instance.  You can
    modify the instance after it's created on the same menu where you created it.
+   After the data has been loaded, you can change back to the smaller machine type.
 
 3. Run some queries (Note that if you don't load the full set of embeddings, you won't get
    as meaningful answers):
