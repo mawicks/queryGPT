@@ -81,6 +81,14 @@ def embed_chunk(chunk_of_docs, doc_to_string) -> dict[str, object]:
     return search_data
 
 
+def embed_one(text: str):
+    api_result = openai.Embedding.create(
+        input=[text],
+        model=EMBEDDING_MODEL,
+    )
+    return api_result["data"][0]["embedding"]  # type:ignore
+
+
 def compute_search_embeddings(
     docs: list[dict],
     doc_to_string: Callable[[dict], str],
@@ -135,3 +143,9 @@ def compute_search_embeddings(
         # Help out the garbage collector by telling it when we're completely
         # finished with a batch
         gc.collect()
+
+
+if __name__ == "__main__":
+    x = embed_one("this is a test")
+    print(x)
+    print("done")

@@ -1,0 +1,1 @@
+poetry run python -m query_gpt.load_vector_db $*

@@ -10,8 +10,6 @@ from query_gpt.config import DATA_DIR
 
 from query_gpt.embeddings import compute_search_embeddings
 
-logging.basicConfig(level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 IRS_FILE_SEGMENTS = {
@@ -163,7 +161,9 @@ ORDERED_FIELDS = [
 # Even though the dictionary is ordered, we persist these documents as JSON in the vector
 # database which destroys order.  If we care about the order, we need to specify it explicitly.
 def doc_to_string(doc):
-    return "".join([f"{key}: {doc[value]}\n" for key in ORDERED_FIELDS if key in doc])
+    return "".join(
+        [f"{key}: {doc[key]}\n" for key in ORDERED_FIELDS if doc.get(key) is not None]
+    )
 
 
 if __name__ == "__main__":

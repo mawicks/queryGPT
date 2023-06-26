@@ -8,31 +8,28 @@ import click
 import pandas as pd
 from tqdm import tqdm
 
-from query_gpt.config import DATA_DIR
-from query_gpt.weaviate import load_weaviate, remove_if_exists_weaviate
+from query_gpt.config import DATA_DIR, IRS990_SCHEMA
 
+# from query_gpt.databases.weaviate import load_weaviate, remove_if_exists_weaviate
+from query_gpt.databases.qdrant import load_vectors, remove_if_exists
 
 CHUNK_SIZE = 50
-
 FILENAME_TEMPLATE = "irs_form_990_embeddings*.parquet"
 
 FILE_LIMIT_QUICK = 10
 RECORD_LIMIT_QUICK = 500
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("query_gpt")
 
 
 @click.command
 @click.option(
     "--full", is_flag=True, help="Load the full dataset (default is partial dataset"
 )
-def load_weaviate_command(full):
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-
+def load_vector_db_command(full):
     random_state = random.Random(42)
 
-    remove_if_exists_weaviate("irs990")
+    remove_if_exists(IRS990_SCHEMA)
 
     filenames = glob(os.path.join(DATA_DIR, "embeddings", FILENAME_TEMPLATE))
 
@@ -51,7 +48,7 @@ def load_weaviate_command(full):
         docs = list(search_data["doc"])
         data = list(search_data["embedding"])
 
-        load_weaviate("irs990", docs, data)
+        load_vectors(IRS990_SCHEMA, docs, data)
 
         # Try to free up some memory
         del docs, data, search_data
@@ -59,5 +56,12 @@ def load_weaviate_command(full):
 
     logger.info("done")
 
+
 if __name__ == "__main__":
-    load_weaviate_command()
+    logging.basicConfig(level=logging.INFO)
+
+    # Raise the log level for the 'httpx' logger.
+    # We don't need to see HTTP return codes.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    load_vector_db_command()
