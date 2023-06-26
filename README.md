@@ -63,10 +63,10 @@ You would type the commands described below in the Terminal of the Codespace.
    load-vector-db --full
    ```
 
-   For the full dataset, I recommend using an 8G instance.
+   For the full dataset, I recommend using an 8G, 4-core instance.
 
-3. Run some queries (note that if you don't load the full set of embeddings, you won't get
-   very meaningful answers):
+3. Run some queries (Note that if you don't load the full set of embeddings, you won't get
+   as meaningful answers):
 
    ```
    export OPENAI_API_KEY=<YOUR OPEN AI API KEY>
