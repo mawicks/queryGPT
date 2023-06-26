@@ -26,7 +26,9 @@ Codespace or devcontainer.
 
 These instructions assume you have created a Codespace dev container.  You can
 create a Codespace container from the main page of this repository by clicking
-on `Code`, then `Codespaces`, then `+`.
+on `Code`, then `Codespaces`, then `Create codespace on main`
+(creating a codespace can take about 10 minutes).
+You would type the commands described below in the Terminal of the Codespace.
 
 1. Download or create a set of embeddings.
    * To download a set of embeddings from a public S3 bucket, type:
