@@ -1,5 +1,6 @@
 import json
 import logging
+import readline
 
 logger = logging.getLogger(__name__)
 
