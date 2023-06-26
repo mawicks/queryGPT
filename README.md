@@ -37,7 +37,7 @@ You would type the commands described below in the Terminal of the Codespace.
      get-embeddings <your-s3-bucket-name> <your-bucket-path>
      ```
 
-   * To create your own embeddings, type the command below,
+   * If you don't have access to pre-computed embeddings, type the command below,
      which will download files for 2022 and 2023 from the IRS,
      parse the files, and call OpenAI to get the embeddings.
      It takes several hours to complete and will incur charges to
