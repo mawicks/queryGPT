@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 counters = Counter()
 
 COMPUTE_EMBEDDINGS = True
+# YEAR_LIST = (2022, 2023)
+YEAR_LIST = (2023,)
 
-# Encoder to use to pre-check the token count when building the prompt
-ENCODER = tiktoken.encoding_for_model(MODEL)
 
 IRS_FILE_SEGMENTS = {
     2022: [
@@ -51,6 +51,9 @@ FILENAME_GLOB = "2023*_public.xml"
 
 NS = {"irs": "http://www.irs.gov/efile"}
 RETURN_TYPES_TO_SKIP = ("990PF", "990T", "990N")
+
+# Encoder to use to pre-check the token count when building the prompt
+ENCODER = tiktoken.encoding_for_model(MODEL)
 
 
 def download_and_parse_segment(year, segment):
@@ -273,9 +276,6 @@ def make_prompt(question: str, items: list[dict[str, str]], failures: int) -> st
     logger.info(f"tiktoken token estimate: {token_count}")
     return prompt
 
-
-# YEAR_LIST = (2022, 2023)
-YEAR_LIST = (2023,)
 
 if __name__ == "__main__":
     for year in YEAR_LIST:
