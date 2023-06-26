@@ -49,6 +49,7 @@ class QueryGPT:
         def update_callback(partial_response):
             print(partial_response, end="")
 
+        print("Answer: ", end="")
         answer = answer_question(question, relevant_documents, update_callback)
         return answer
 
