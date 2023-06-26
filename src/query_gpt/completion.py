@@ -38,16 +38,21 @@ def make_prompt(question: str, items: list[dict[str, str]], failures: int) -> st
     prefix = (
         "The following records contain information taken from tax records "
         "for non-profit organizations operating in the US. "
+        "The data for a single organization is delimited by <record> and </record>. "
         "At the end of these records, there is a question for you to answer about "
         "these non-profit organizations."
         "Try to keep the total response below 500 words.\n"
     )
 
     instruction = (
-        "Please answer the following question about the responses "
-        "about the non-profit organizations and remember to keep "
-        "the response below 500 words. "
+        "Please answer the question below about non-profit organizations.  "
+        "Some of the records above may not be relevant to the question.  Pleas ignore "
+        "any irrelevant records.  The most relevant ones may be near the top of the list. "
+        "Remember to keep "
+        "the response below 500 words. If you are asked to provide a list, you may "
+        "need to omit some items from the list.  If so, state the the list is represntative and not complete. "
         f"{'Be *EXTREMELY* BRIEF in your answer. ' if failures > 0 else ''}"
+        "Please exclude any records that are not relevant to the question. "
         "Base your answer primarily on the records above, but you may fill in "
         "holes based on any prior knowledge you have of these organizations.\n"
         f"Question: {question}\n"
@@ -80,7 +85,7 @@ def openai_completion(messages, update_callback=None):
         presence_penalty=1.0,
         max_tokens=MAX_COMPLETION_TOKENS,
         temperature=0.01,  # OpenAI says that one of temperature or top_p should be 1.0
-        top_p=1.0,
+        top_p=0.8,
         stream=True,
     )
 
