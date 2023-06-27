@@ -25,15 +25,17 @@ def remove_if_exists(schema: str):
         logger.info(f"Removed existing schema: {schema}")
 
     logger.info(f"Creating new schema: {schema}")
+
+    __quantization_config__ = models.ProductQuantization(
+        product=models.ProductQuantizationConfig(
+            compression=models.CompressionRatio.X16,
+            always_ram=True,
+        )
+    )
+
     client.recreate_collection(
         schema,
         vectors_config=models.VectorParams(size=1536, distance=models.Distance.COSINE),
-        quantization_config=models.ProductQuantization(
-            product=models.ProductQuantizationConfig(
-                compression=models.CompressionRatio.X16,
-                always_ram=True,
-            ),
-        ),
         optimizers_config=models.OptimizersConfigDiff(memmap_threshold=20000),
         hnsw_config=models.HnswConfigDiff(on_disk=True),
         on_disk_payload=True,
