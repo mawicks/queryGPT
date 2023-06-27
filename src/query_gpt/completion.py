@@ -2,7 +2,6 @@ import logging
 import time
 
 import openai
-import tiktoken
 from query_gpt.config import MODEL
 
 from query_gpt.irs_data import make_prompt
@@ -12,6 +11,7 @@ CHUNK_INTERVAL = 16  # Update interval while streaming.
 MAX_ATTEMPTS = 3
 
 logger = logging.getLogger(__name__)
+
 
 def openai_completion(messages, update_callback=None):
     start_time = time.time()
@@ -28,12 +28,12 @@ def openai_completion(messages, update_callback=None):
 
     completion = ""
     chunk_time = 0.0
-    chunk = None
+    response_fragment = None
 
-    for chunk in response:
+    for response_fragment in response:
         chunk_time = time.time() - start_time  # calculate the time delay of the chunk
 
-        chunk_message = chunk["choices"][0]["delta"].get(
+        chunk_message = response_fragment["choices"][0]["delta"].get(
             "content", ""
         )  # extract the message
 
@@ -43,7 +43,7 @@ def openai_completion(messages, update_callback=None):
 
     # print the time delay and text received
     logger.info(f"Full response received {chunk_time:.2f} seconds after request")
-    return chunk, completion
+    return response_fragment, completion
 
 
 def answer_question(question, context, update_callback=None, max_attempts=MAX_ATTEMPTS):
@@ -71,15 +71,15 @@ def answer_question(question, context, update_callback=None, max_attempts=MAX_AT
             }
         ]
 
-        completion, message = openai_completion(messages, update_callback)
+        response, message = openai_completion(messages, update_callback)
 
-        response = completion.choices[0]
-        if response.finish_reason == "stop":
+        choice = response.choices[0]
+        if choice.finish_reason == "stop":
             result = message.strip()
-            # usage = completion.usage
+            # usage = response.usage
             break
         else:
-            logger.warning(f"Finish reason: {response.finish_reason}")
+            logger.warning(f"Finish reason: {choice.finish_reason}")
             logger.warning(f"Truncated answer: {message.strip()}")
             logger.warning("Trying again with a different prompt...")
             failures += 1

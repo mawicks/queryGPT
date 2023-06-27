@@ -9,4 +9,4 @@ MODEL = "gpt-3.5-turbo-16k"  # Or use "text-davinci-003" for GPT-3
 INPUT_TOKEN_GOAL = 14_900
 
 EMBEDDING_MODEL = "text-embedding-ada-002"
-EMBEDDING_TOKEN_GOAL = 8_200  # It's supposed to be 8_212 but we allow a bit of headroom
+EMBEDDING_TOKEN_GOAL = 8_183  # It's supposed to be 8_191 but we allow a bit of headroom
