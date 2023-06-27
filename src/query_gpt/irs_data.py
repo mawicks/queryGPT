@@ -19,9 +19,8 @@ logger = logging.getLogger(__name__)
 counters = Counter()
 
 COMPUTE_EMBEDDINGS = True
-# YEAR_LIST = (2022, 2023)
-YEAR_LIST = (2023,)
 
+YEAR_LIST = (2022, 2023)
 
 IRS_FILE_SEGMENTS = {
     2022: [
@@ -36,11 +35,11 @@ IRS_FILE_SEGMENTS = {
         "11C",
     ],
     2023: [
-        # "01A",
-        # "02A",
-        # "03A",
-        # "04A",
-        # "05A",
+        "01A",
+        "02A",
+        "03A",
+        "04A",
+        "05A",
         "05B",
     ],
 }
