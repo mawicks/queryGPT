@@ -8,4 +8,4 @@ fi
 
 dirname=$(dirname $0)
 
-sudo aws s3 sync s3://$1/$2 "${dirname}/../data/embeddings" --no-sign-request
+aws s3 sync s3://$1/$2 "${dirname}/../data/embeddings" --delete --no-sign-request
