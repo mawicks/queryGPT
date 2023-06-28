@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 from tqdm import tqdm
 from query_gpt.config import DATA_DIR, MODEL, INPUT_TOKEN_GOAL
 from query_gpt.embeddings import compute_search_embeddings
+from query_gpt.retry import backoff_and_retry
 
 
 logger = logging.getLogger(__name__)

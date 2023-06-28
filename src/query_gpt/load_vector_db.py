@@ -11,7 +11,11 @@ from tqdm import tqdm
 from query_gpt.config import DATA_DIR, IRS990_SCHEMA
 
 # from query_gpt.databases.weaviate import load_weaviate, remove_if_exists_weaviate
-from query_gpt.databases.qdrant import load_vectors, remove_if_exists
+from query_gpt.databases.qdrant import (
+    load_vectors,
+    remove_and_recreate_schema,
+    restore_indexing,
+)
 
 CHUNK_SIZE = 50
 FILENAME_TEMPLATE = "irs_form_990_embeddings*.parquet"
@@ -29,7 +33,8 @@ logger = logging.getLogger("query_gpt")
 def load_vector_db_command(full):
     random_state = random.Random(42)
 
-    remove_if_exists(IRS990_SCHEMA)
+    logger.info(f"Recreating schema for {IRS990_SCHEMA}")
+    remove_and_recreate_schema(IRS990_SCHEMA)
 
     filenames = glob(os.path.join(DATA_DIR, "embeddings", FILENAME_TEMPLATE))
 
@@ -56,6 +61,8 @@ def load_vector_db_command(full):
         del docs, data, search_data
         gc.collect()
 
+    logger.info("Recreating indexes as necessary")
+    restore_indexing(IRS990_SCHEMA)
     logger.info("done")
 
 

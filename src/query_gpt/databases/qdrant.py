@@ -3,10 +3,13 @@ import os
 from tqdm import tqdm
 import json
 import uuid
+import time
 
 import numpy as np
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
+
+from query_gpt.retry import backoff_and_retry
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +21,7 @@ def client_factory() -> QdrantClient:
     return QdrantClient(QDRANT_HOST, port=6333)
 
 
-def remove_if_exists(schema: str):
+def remove_and_recreate_schema(schema: str):
     client = client_factory()
 
     if client.delete_collection(schema):
@@ -32,19 +35,39 @@ def remove_if_exists(schema: str):
             always_ram=True,
         )
     )
-
+    # Setting indexing_threshold to 0 during large uploads is
+    # recommended here: https://qdrant.tech/documentation/tutorials/bulk-upload/
     client.recreate_collection(
         schema,
-        vectors_config=models.VectorParams(size=1536, distance=models.Distance.COSINE),
-        optimizers_config=models.OptimizersConfigDiff(memmap_threshold=20000),
-        hnsw_config=models.HnswConfigDiff(on_disk=True),
+        vectors_config=models.VectorParams(
+            size=1536, distance=models.Distance.COSINE, on_disk=True
+        ),
+        optimizers_config=models.OptimizersConfigDiff(indexing_threshold=0),
         on_disk_payload=True,
     )
 
 
-def load_vectors(schema: str, docs: list[dict[str, str]], vectors: list[np.ndarray]):
+def restore_indexing(schema: str):
     client = client_factory()
+    client.recreate_collection(
+        schema,
+        vectors_config=models.VectorParams(
+            size=1536, distance=models.Distance.COSINE, on_disk=True
+        ),
+        optimizers_config=models.OptimizersConfigDiff(memmap_threshold=20_000),
+        hnsw_config=models.HnswConfigDiff(
+            on_disk=True,
+            indexing_threshold=20_000,
+        ),
+        on_disk_payload=True,
+    )
 
+    logger.info(f"Status: {client.get_collection(schema).status}")
+    time.sleep(10)
+    logger.info(f"Status: {client.get_collection(schema).status}")
+
+
+def load_vectors(schema: str, docs: list[dict[str, str]], vectors: list[np.ndarray]):
     for chunk in tqdm(range(0, len(docs), CHUNK_SIZE)):
         docs_chunk = docs[chunk : chunk + CHUNK_SIZE]
         vectors_chunk = vectors[chunk : chunk + CHUNK_SIZE]
@@ -57,7 +80,11 @@ def load_vectors(schema: str, docs: list[dict[str, str]], vectors: list[np.ndarr
                 models.PointStruct(id=id, vector=vector.tolist(), payload=doc)
             )
 
-        client.upsert(schema, points=points)
+        def try_once():
+            client = client_factory()
+            client.upsert(schema, points=points)
+
+        backoff_and_retry(try_once)
 
 
 def get_relevant_responses(schema, embedding, count):
