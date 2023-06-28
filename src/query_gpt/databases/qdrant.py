@@ -43,18 +43,6 @@ def remove_and_recreate_schema(schema: str):
             size=1536, distance=models.Distance.COSINE, on_disk=True
         ),
         optimizers_config=models.OptimizersConfigDiff(indexing_threshold=0),
-        on_disk_payload=True,
-    )
-
-
-def restore_indexing(schema: str):
-    client = client_factory()
-    client.recreate_collection(
-        schema,
-        vectors_config=models.VectorParams(
-            size=1536, distance=models.Distance.COSINE, on_disk=True
-        ),
-        optimizers_config=models.OptimizersConfigDiff(memmap_threshold=20_000),
         hnsw_config=models.HnswConfigDiff(
             on_disk=True,
             indexing_threshold=20_000,
@@ -62,9 +50,27 @@ def restore_indexing(schema: str):
         on_disk_payload=True,
     )
 
-    logger.info(f"Status: {client.get_collection(schema).status}")
-    time.sleep(10)
-    logger.info(f"Status: {client.get_collection(schema).status}")
+
+def restore_indexing(schema: str):
+    client = client_factory()
+    client.update_collection(
+        schema,
+        optimizers_config=models.OptimizersConfigDiff(
+            indexing_threshold=20_000,
+            memmap_threshold=20_000,
+        ),
+    )
+
+    for i in range(11):
+        collection = client.get_collection(schema)
+        logger.info(
+            f"Status: {collection.status}; Optimizer status: {collection.optimizer_status}"
+        )
+        if collection.status == "green":
+            logger.info("Complete")
+            break
+        if i + 1 < 10:
+            time.sleep(60)
 
 
 def load_vectors(schema: str, docs: list[dict[str, str]], vectors: list[np.ndarray]):
