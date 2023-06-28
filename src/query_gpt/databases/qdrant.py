@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 QDRANT_HOST = os.environ.get("QDRANT_HOST", "localhost")
 CHUNK_SIZE = 100
+DEFAULT_READY_POLL_TIME_SECONDS = 60
 
 
 def client_factory() -> QdrantClient:
@@ -45,7 +46,6 @@ def remove_and_recreate_schema(schema: str):
         optimizers_config=models.OptimizersConfigDiff(indexing_threshold=0),
         hnsw_config=models.HnswConfigDiff(
             on_disk=True,
-            indexing_threshold=20_000,
         ),
         on_disk_payload=True,
     )
@@ -61,16 +61,52 @@ def restore_indexing(schema: str):
         ),
     )
 
-    for i in range(11):
+
+def wait_until_ready(schema: str):
+    wait = DEFAULT_READY_POLL_TIME_SECONDS
+    logger.info(f"Waiting {wait} seconds before polling {schema} for status")
+
+    client = client_factory()
+    while True:
+        time.sleep(wait)
         collection = client.get_collection(schema)
-        logger.info(
-            f"Status: {collection.status}; Optimizer status: {collection.optimizer_status}"
-        )
         if collection.status == "green":
-            logger.info("Complete")
+            logger.info(f"Collection {schema} is ready.")
             break
-        if i + 1 < 10:
-            time.sleep(60)
+        else:
+            logger.info(f"Collection {schema} is not ready.  Waiting {wait} seconds...")
+    return
+
+
+def rename(loading_collection: str, collection: str):
+    client = client_factory()
+
+    # Remove the alias if it already exists and add the alias to
+    # the loading collection.
+
+    result = client.update_collection_aliases(
+        [
+            models.DeleteAliasOperation(
+                delete_alias=models.DeleteAlias(alias_name=collection)
+            ),
+            models.CreateAliasOperation(
+                create_alias=models.CreateAlias(
+                    collection_name=loading_collection, alias_name=collection
+                )
+            ),
+        ]
+    )
+
+    if not result:
+        raise RuntimeError("update_collection_aliases failed")
+
+    # Remove any collections left over from the past that resemble this
+    # collectio name but are not the loading collection.
+    for collection_description in client.get_collections().collections:
+        collection = collection_description.name
+        if collection.startswith(collection) and collection != loading_collection:
+            logger.info(f"Removing old collection: {collection}")
+            client.delete_collection(collection)
 
 
 def load_vectors(schema: str, docs: list[dict[str, str]], vectors: list[np.ndarray]):

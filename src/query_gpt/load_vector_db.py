@@ -1,3 +1,4 @@
+import datetime as dt
 import gc
 from glob import glob
 import logging
@@ -15,6 +16,8 @@ from query_gpt.databases.qdrant import (
     load_vectors,
     remove_and_recreate_schema,
     restore_indexing,
+    wait_until_ready,
+    rename,
 )
 
 CHUNK_SIZE = 50
@@ -30,11 +33,18 @@ logger = logging.getLogger("query_gpt")
 @click.option(
     "--full", is_flag=True, help="Load the full dataset (default is partial dataset"
 )
-def load_vector_db_command(full):
+@click.option("--collection", "-c", default=IRS990_SCHEMA, help="Collection nane")
+def load_vector_db_command(full, collection):
     random_state = random.Random(42)
 
-    logger.info(f"Recreating schema for {IRS990_SCHEMA}")
-    remove_and_recreate_schema(IRS990_SCHEMA)
+    logger.info(f"Loading data into {collection}")
+    loading_collection_suffix = (
+        str(dt.datetime.now()).replace(" ", "-").replace(":", "-")
+    )
+
+    loading_collection = f"{collection}-{loading_collection_suffix}"
+    logger.info(f"Creating temporary schema: {loading_collection}")
+    remove_and_recreate_schema(loading_collection)
 
     filenames = glob(os.path.join(DATA_DIR, "embeddings", FILENAME_TEMPLATE))
 
@@ -42,9 +52,7 @@ def load_vector_db_command(full):
         file_limit = min(FILE_LIMIT_QUICK, len(filenames))
         filenames = random_state.sample(filenames, file_limit)
 
-    logger.info(
-        f"Loading embedding data ({len(filenames):,d} files) to vector database"
-    )
+    logger.info(f"Found {len(filenames):,d} files to load")
 
     for filename in tqdm(filenames):
         search_data = pd.read_parquet(filename)
@@ -55,14 +63,18 @@ def load_vector_db_command(full):
         docs = list(search_data["doc"])
         data = list(search_data["embedding"])
 
-        load_vectors(IRS990_SCHEMA, docs, data)
+        load_vectors(loading_collection, docs, data)
 
         # Try to free up some memory
         del docs, data, search_data
         gc.collect()
 
     logger.info("Recreating indexes as necessary")
-    restore_indexing(IRS990_SCHEMA)
+    restore_indexing(loading_collection)
+
+    wait_until_ready(loading_collection)
+    rename(loading_collection, collection)
+
     logger.info("done")
 
 
