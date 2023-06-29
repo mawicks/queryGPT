@@ -103,10 +103,13 @@ def rename(loading_collection: str, collection: str):
     # Remove any collections left over from the past that resemble this
     # collectio name but are not the loading collection.
     for collection_description in client.get_collections().collections:
-        collection = collection_description.name
-        if collection.startswith(collection) and collection != loading_collection:
-            logger.info(f"Removing old collection: {collection}")
-            client.delete_collection(collection)
+        existing_collection = collection_description.name
+        if (
+            existing_collection.startswith(collection)
+            and existing_collection != loading_collection
+        ):
+            logger.info(f"Removing old collection: {existing_collection}")
+            client.delete_collection(existing_collection)
 
 
 def load_vectors(schema: str, docs: list[dict[str, str]], vectors: list[np.ndarray]):
