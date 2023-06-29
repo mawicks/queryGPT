@@ -119,7 +119,8 @@ def load_vectors(schema: str, docs: list[dict[str, str]], vectors: list[np.ndarr
 
         points = []
         for doc, vector in zip(docs_chunk, vectors_chunk):
-            text = json.dumps(doc)
+            # Sort the keys to guarantee uniqueness of the `id`.
+            text = json.dumps(doc, sort_keys=True)
             id = str(uuid.uuid3(uuid.NAMESPACE_OID, text))
             points.append(
                 models.PointStruct(id=id, vector=vector.tolist(), payload=doc)
