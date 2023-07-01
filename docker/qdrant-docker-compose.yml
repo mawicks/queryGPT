@@ -7,7 +7,7 @@ services:
       - 6333:6333
     volumes:
       - qdrant-data:/qdrant/storage
-    image: qdrant/qdrant
+    image: qdrant/qdrant:v1.2.2
 
 
 volumes:
